@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.bitvest_cookies.json
+.bitvest_bot_progress.json
+.bitvest_bot.pid
+*.log
+*.bak
+*.bak2
+.venv/
+.env

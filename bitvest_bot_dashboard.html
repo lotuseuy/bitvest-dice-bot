@@ -1,0 +1,282 @@
+<!doctype html><html lang=en><head>
+<meta charset=utf-8">
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name=theme-color content="#070a12">
+<title>BitVest Autobet</title>
+<style>
+:root{color-scheme:dark;--bg:#070a12;--card:#101725;--line:#223049;--muted:#8d97b5;--up:#38dc96;--down:#ff5c7c;--warn:#ffaa33;--accent:#61dfff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}body{margin:0;background:var(--bg);color:#e8ecf8;font:14px/1.4 Inter,system-ui,sans-serif;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+.w{max-width:600px;margin:auto;padding:calc(10px + env(safe-area-inset-top)) 10px 14px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.hdr h1{font-size:18px;margin:0}
+.pill{padding:5px 10px;border-radius:99px;background:#28354f;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}.pill.on{background:#12432f;color:#49f2ab}.pill.lua{background:#2a1a4f;color:#b388ff}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px}.row .l{color:var(--muted)}.row .r{font-weight:600;font-variant-numeric:tabular-nums}
+.big{font-size:28px;font-weight:800;line-height:1.1}.sm{font-size:12px;color:var(--muted);margin-top:2px}
+.up{color:var(--up)}.dn{color:var(--down)}.warn{color:var(--warn)}
+.bar{height:6px;border-radius:99px;background:#182338;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#18c98b,#61dfff);transition:width .4s}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.twrap{max-height:360px;overflow:auto;-webkit-overflow-scrolling:touch}
+.tr{display:flex;align-items:center;padding:5px 6px;border-bottom:1px solid #1a2535;font-size:12px;font-variant-numeric:tabular-nums;gap:6px}
+.tr .tn{width:50px;color:var(--muted);flex-shrink:0;text-align:right}.tr .tr2{width:55px;flex-shrink:0;text-align:center}
+.tr .ts{width:50px;text-align:right;flex-shrink:0}.tr .tp{width:65px;text-align:right;flex-shrink:0;font-weight:600}.tr .tb{flex:1;text-align:right}
+.acts{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#070a12f2;border-top:1px solid var(--line);backdrop-filter:blur(12px)}
+.btn{border:0;border-radius:10px;padding:12px 6px;font-weight:800;font-size:13px;cursor:pointer;min-height:44px}
+.go{background:#18c98b;color:#03110b}.st{background:#ff4768;color:#fff}.tst{background:#28354f;color:#dce4ff}.rst{background:#5c3a00;color:#ffaa33}
+.tabs{display:flex;gap:4px;margin-bottom:8px}
+.tab{flex:1;text-align:center;padding:8px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:13px;cursor:pointer}
+.tab.active{background:#1a2a4f;border-color:var(--accent);color:var(--accent)}
+.mode-section{display:none}.mode-section.active{display:block}
+select,input[type=number],input[type=text]{background:#182338;border:1px solid var(--line);border-radius:8px;color:#e8ecf8;padding:8px 10px;font-size:13px;width:100%;margin-bottom:6px}
+select:focus,input:focus{outline:none;border-color:var(--accent)}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:2px}.field{margin-bottom:8px}
+.lua-area{width:100%;min-height:200px;background:#0a0e1a;border:1px solid var(--line);border-radius:8px;color:#b3ffc8;font-family:'Fira Code',monospace;font-size:12px;padding:10px;resize:vertical;line-height:1.5}
+.lua-area:focus{outline:none;border-color:#b388ff}
+.script-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.script-chip{padding:6px 12px;border-radius:99px;background:#1a2a4f;border:1px solid var(--line);font-size:12px;cursor:pointer;font-weight:600}
+.script-chip.active{background:#2a1a4f;border-color:#b388ff;color:#b388ff}
+@media(min-width:520px){.w{padding:16px}}
+@media(min-width:700px){body{padding-bottom:0}.acts{position:static;grid-template-columns:repeat(4,1fr);background:none;border:0;padding:0}}
+</style></head>
+<body><div class=w>
+<div class=hdr><h1>BitVest Autobet</h1><div id=pill class=pill>OFFLINE</div></div>
+<div class=c id=connsec>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+  <div style="flex:1;cursor:pointer" onclick="toggleConn()">
+    <div class=sm>CONNECTION <span id=connarrow style="font-size:10px;color:var(--muted)">▼</span></div>
+    <div class=big id=connstatus style="font-size:16px">Checking...</div>
+  </div>
+  <button class="btn go" style="min-width:80px;font-size:11px;padding:8px 10px" onclick="doConnect()">CONNECT</button>
+</div>
+<div id=connbody>
+<textarea id=cookieinput style="width:100%;min-height:60px;background:#0a0e1a;border:1px solid var(--line);border-radius:8px;color:#b3ffc8;font-family:monospace;font-size:11px;padding:8px;resize:vertical;margin-bottom:6px" placeholder="Paste cookies (JSON or key=value; key=value)"></textarea>
+<div style="display:flex;gap:6px">
+  <button class="btn tst" style="flex:1;font-size:11px;padding:8px" onclick="saveCookies()">SAVE COOKIES</button>
+  <button class="btn tst" style="flex:1;font-size:11px;padding:8px" onclick="loadCookies()">LOAD</button>
+</div>
+</div>
+</div>
+<div class=c>
+<div class=big id=balance>-</div>
+<div class=sm id=target>&mdash;</div>
+<div class=bar><i id=tbar></i></div>
+</div>
+<div class=g4>
+<div class=c><div class=sm>BETS</div><div class=big id=bets>-</div><div class=sm id=wr>&mdash;</div></div>
+<div class=c><div class=sm>SESSIONS</div><div class=big id=scount>0</div><div class=sm id=sinfo>&mdash;</div></div>
+<div class=c><div class=sm>SESSION PnL</div><div class=big id=spnl>-</div><div class=sm id=sdetail>&mdash;</div></div>
+<div class=c><div class=sm>LOCKED</div><div class=big id=locked>-</div></div>
+</div>
+<div class=g3>
+<div class=c><div class=sm>DRAWDOWN</div><div class=big id=dd>-</div></div>
+<div class=c><div class=sm>SL STREAK</div><div class=big id=slstreak>0</div><div class=sm id=slinfo>&mdash;</div></div>
+<div class=c><div class=sm>SEED RESETS</div><div class=big id=seedresets>0</div></div>
+</div>
+<div class=tabs>
+<div class="tab active" id=tab_std onclick="switchMode('standard')">⚙️ Standard</div>
+<div class=tab id=tab_lua onclick="switchMode('lua')">📜 Lua Script</div>
+</div>
+<div id=standard-section class="mode-section active c" style="padding:10px">
+<div class=g2>
+<div class=field><label>Chance %</label><input type=number id=c_chance step=0.1 value=17></div>
+<div class=field><label>Bet % balance</label><input type=number id=c_betpct step=0.001 value=0.003></div>
+</div>
+<div class=g2>
+<div class=field><label>On Lose (×)</label><input type=number id=c_progl step=0.001 value=1.035></div>
+<div class=field><label>On Win (×)</label><input type=number id=c_progw step=0.001 value=0.943></div>
+</div>
+<div class=g2>
+<div class=field><label>Take Profit %</label><input type=number id=c_tp step=0.01 value=0.03></div>
+<div class=field><label>Stop Loss %</label><input type=number id=c_sl step=0.01 value=0.20></div>
+</div>
+<div class=g2>
+<div class=field><label>Profit Lock %</label><input type=number id=c_lock step=0.01 value=0.30></div>
+<div class=field><label>Max SL → Seed Reset</label><input type=number id=c_maxsl value=3></div>
+<div class=field><label>Max Roll / Session</label><input type=number id=c_maxrolls value=500></div>
+</div>
+<div class=field><label>Target (TOK)</label><input type=number id=c_target value=1000000></div>
+<div style="margin-top:8px"><button class="btn go" style="width:100%" onclick="applyConfig()">Apply Config</button></div>
+</div>
+<div id=lua-section class="mode-section c" style="padding:10px">
+<div class=sm style="margin-bottom:8px">Available Scripts:</div>
+<div class=script-list id=script-list></div>
+<div class=g2 style="margin-bottom:8px">
+<div class=field><label>Script Name</label><input type=text id=script-name placeholder="my_strategy"></div>
+<div style="padding-top:16px;display:flex;gap:6px">
+<button class="btn tst" onclick="loadScript()">Load</button>
+<button class="btn go" onclick="saveScript()" style="background:#61dfff;color:#000">Save</button>
+</div>
+</div>
+<textarea class=lua-area id=lua-editor placeholder="-- Write your Lua strategy here
+-- Functions: init(state), get_bet(state), on_bet(result)
+-- get_bet returns {amount, chance, direction}
+-- on_bet returns {action='reset_session'|'reset_seed'|'stop', bet=...}
+"></textarea>
+<div class=sm style="margin-top:6px"><button class="btn tst" onclick="testLua()">Test Script</button> <span id=lua-status style="margin-left:8px"></span></div>
+</div>
+<div class=c style="padding:0;overflow:hidden">
+<div style="padding:10px 12px;border-bottom:1px solid var(--line)"><b style="font-size:13px">Roll History</b> <span class=sm id=rstat></span></div>
+<div class=twrap id=betlist></div>
+</div>
+<div class=c style="font-size:12px;color:var(--muted)">
+<div class=row><span class=l>Phase</span><span class=r id=phase>-</span></div>
+<div class=row><span class=l>Win/Loss</span><span class=r id=wl>-</span></div>
+<div class=row><span class=l>Status</span><span class=r id=status>-</span></div>
+</div>
+</div>
+<div class=acts>
+<button class="btn go" onclick="doStart()">START</button>
+<button class="btn tst" onclick="doTest()">TEST</button>
+<button class="btn st" onclick="doStop()">STOP</button>
+<button class="btn rst" onclick="doReset()">RESET</button>
+</div>
+<script>
+const $=id=>document.getElementById(id),
+fmt=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+let state={config:{}},currentMode="standard";
+function switchMode(m){
+  currentMode=m;
+  $('tab_std').className='tab'+(m==='standard'?' active':'');
+  $('tab_lua').className='tab'+(m==='lua'?' active':'');
+  $('standard-section').className='mode-section'+(m==='standard'?' active':'')+(m==='standard'?' c':'');
+  $('lua-section').className='mode-section'+(m==='lua'?' active':'')+(m==='lua'?' c':'');
+}
+function render(s){
+  state=s;const c=s.config||{};
+  $('balance').textContent=fmt(s.balance)+' TOK';
+  const p=s.total_profit||0,base=s.start_balance||1;
+  $('target').textContent='PnL '+(p>=0?'+':'')+fmt(p)+' · Target '+fmt(c.global_target||0);
+  $('tbar').style.width=Math.max(0,Math.min(100,(s.balance-base)/((c.global_target||1e6)-base)*100))+'%';
+  $('bets').textContent=s.total_bets||0;
+  const wr=s.total_bets?s.wins/s.total_bets*100:0;
+  $('wr').textContent=wr.toFixed(1)+'% win · '+s.phase;
+  $('scount').textContent=s.session_count||0;
+  $('sinfo').textContent=c.mode==='lua'?'Lua: '+(s.active_script||'none'):'TP '+(c.dice_tp_pct*100||0).toFixed(0)+'% / SL '+(c.dice_stage_sl_pct*100||0).toFixed(0)+'%';
+  const sp=s.session_profit||0;
+  $('spnl').textContent=(sp>=0?'+':'')+fmt(sp);
+  $('spnl').className='big '+(sp>=0?'up':'dn');
+  $('sdetail').textContent='Bet '+fmt(s.dice_next_bet)+' · W:'+(s.session_wins||0)+' L:'+(s.session_losses||0);
+  $('locked').textContent=fmt(s.locked_profit||0);$('locked').className='big warn';
+  $('dd').textContent=fmt(s.max_dd)+'%';$('dd').className='big '+(s.max_dd>30?'dn':s.max_dd>15?'warn':'up');
+  const csl=s.consecutive_sl||0,maxsl=c.max_consecutive_sl||3;
+  $('slstreak').textContent=csl+'/'+maxsl;$('slstreak').className='big '+(csl>=2?'dn':csl>=1?'warn':'up');
+  $('slinfo').textContent=csl>=maxsl-1?'Seed reset next!':'Safe';
+  $('seedresets').textContent=s.seed_resets||0;
+  updateConnStatus(s);
+const pill=$('pill');
+  pill.textContent=s.running?(c.mode==='lua'?'LIVE · LUA':'LIVE · STANDARD'):'OFFLINE';
+  pill.className='pill '+(s.running?(c.mode==='lua'?'on lua':'on'):'');
+  $('status').textContent=s.status||'—';$('phase').textContent=s.phase;
+  $('wl').textContent=(s.wins||0)+'W / '+(s.losses||0)+'L';
+  $('rstat').textContent=(s.total_bets)+' bets';
+  // Sync form only if bot is not running (fresh load)
+  if(!s.running&&!window._synced){
+    window._synced=true;
+    if(c.dice_chance!==undefined)$('c_chance').value=c.dice_chance;
+    if(c.dice_bet_pct!==undefined)$('c_betpct').value=c.dice_bet_pct;
+    if(c.dice_prog_loss!==undefined)$('c_progl').value=c.dice_prog_loss;
+    if(c.dice_prog_win!==undefined)$('c_progw').value=c.dice_prog_win;
+    if(c.dice_tp_pct!==undefined)$('c_tp').value=c.dice_tp_pct;
+    if(c.dice_stage_sl_pct!==undefined)$('c_sl').value=c.dice_stage_sl_pct;
+    if(c.profit_lock_pct!==undefined)$('c_lock').value=c.profit_lock_pct;
+    if(c.max_consecutive_sl!==undefined)$('c_maxsl').value=c.max_consecutive_sl;
+    if(c.max_session_rolls!==undefined)$('c_maxrolls').value=c.max_session_rolls;
+    if(c.global_target!==undefined)$('c_target').value=c.global_target;
+  }
+}
+function renderBets(list){
+  const el=$('betlist');
+  if(!list||!list.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted)">No bets yet</div>';return;}
+  el.innerHTML=list.slice(0,80).map(x=>{
+    const r=x.detail&&x.detail.roll!=null?x.detail.roll:'—';
+    const roll=typeof r==='number'?r.toFixed(2):r;
+    return '<div class=tr><span class=tn>#'+x.number+'</span><span class=tr2 style="color:'+(x.win?'var(--up)':'var(--muted)')+'">'+roll+'</span><span class=ts">'+fmt(x.stake)+'</span><span class="tp '+(x.profit>=0?'up':'dn')+'">'+(x.profit>=0?'+':'')+fmt(x.profit)+'</span><span class=tb>'+fmt(x.balance)+'</span></div>';
+  }).join('');
+}
+async function loadScripts(){
+  try{const list=await(await fetch('/api/scripts')).json();
+  $('script-list').innerHTML=list.map(s=>'<div class="script-chip" onclick="selectScript(\''+s.name+'\')">'+s.name+'</div>').join('');}catch(e){}
+}
+function selectScript(name){$('script-name').value=name;loadScript();}
+async function loadScript(){
+  const name=$('script-name').value.trim();if(!name)return;
+  try{const r=await(await fetch('/api/scripts/'+name)).json();
+  $('lua-editor').value=r.code||'';$('lua-status').textContent='Loaded: '+name;$('lua-status').style.color='var(--up)';}catch(e){$('lua-status').textContent='Not found';$('lua-status').style.color='var(--down)';}
+}
+async function saveScript(){
+  const name=$('script-name').value.trim();if(!name)return;
+  await fetch('/api/scripts/'+name,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code:$('lua-editor').value})});
+  $('lua-status').textContent='Saved: '+name;$('lua-status').style.color='var(--up)';loadScripts();
+}
+function testLua(){
+  const code=$('lua-editor').value;
+  fetch('/api/scripts/_test',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code})})
+    .then(r=>r.json()).then(d=>{$('lua-status').textContent=d.ok?'✓ Syntax OK':'✗ '+d.error;$('lua-status').style.color=d.ok?'var(--up)':'var(--down)';});
+}
+async function applyConfig(){
+  const cfg={
+    dice_chance:parseFloat($('c_chance').value),
+    dice_bet_pct:parseFloat($('c_betpct').value),
+    dice_prog_loss:parseFloat($('c_progl').value),
+    dice_prog_win:parseFloat($('c_progw').value),
+    dice_tp_pct:parseFloat($('c_tp').value),
+    dice_stage_sl_pct:parseFloat($('c_sl').value),
+    profit_lock_pct:parseFloat($('c_lock').value),
+    max_consecutive_sl:parseInt($('c_maxsl').value),
+    max_session_rolls:parseInt($('c_maxrolls').value),
+    global_target:parseFloat($('c_target').value),
+    mode:currentMode,
+    active_script:currentMode==='lua'?($('script-name').value.trim()):'',
+  };
+  const r=await(await fetch('/api/config',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cfg)})).json();
+  $('status').textContent=r.ok?'Config applied ✓':'Error: '+(r.error||'');
+}
+async function doStart(){await applyConfig();await fetch('/api/start',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});window._synced=false;}
+async function doTest(){await applyConfig();await fetch('/api/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({dry_run:true})});window._synced=false;}
+async function doStop(){await fetch('/api/stop',{method:'POST'});window._synced=false;}
+let connOpen=true;
+function toggleConn(){
+  connOpen=!connOpen;
+  $('connbody').style.display=connOpen?'block':'none';
+  $('connarrow').textContent=connOpen?'▼':'▶';
+}
+async function doConnect(){
+  $('connstatus').textContent='Connecting...';$('connstatus').style.color='var(--warn)';
+  try{const r=await(await fetch('/api/connect',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).json();
+  if(r.ok){$('connstatus').textContent='Connected ✓ BAL: '+fmt(r.balance);$('connstatus').style.color='var(--up)';}
+  else{$('connstatus').textContent='Failed: '+(r.error||'');$('connstatus').style.color='var(--down)';}
+  }catch(e){$('connstatus').textContent='Error: '+e;$('connstatus').style.color='var(--down)';}
+}
+async function saveCookies(){
+  const text=$('cookieinput').value.trim();if(!text){alert('Paste cookies dulu');return;}
+  try{const r=await(await fetch('/api/cookies',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({cookies:text})})).json();
+  if(r.ok){alert('Saved '+r.count+' cookies');}else{alert('Error: '+(r.error||''));}}
+  catch(e){alert('Error: '+e);}
+}
+async function loadCookies(){
+  try{const r=await(await fetch('/api/cookies')).json();
+  $('cookieinput').value=r.text||'';$('connstatus').textContent=r.ok?r.count+' cookies loaded':'No cookies';
+  $('connstatus').style.color=r.ok?'var(--up)':'var(--muted)';
+  }catch(e){}
+}
+function updateConnStatus(s){
+  if(s.connected){$('connstatus').textContent='Connected ✓ BAL: '+fmt(s.balance);$('connstatus').style.color='var(--up)';}
+  else if(s.running){$('connstatus').textContent='Bot running (dry_run)';$('connstatus').style.color='var(--warn)';}
+  else{$('connstatus').textContent='Disconnected';$('connstatus').style.color='var(--down)';}
+}
+async function doReset(){
+  if(!confirm('Reset semua statistik? Balance akan tetap.'))return;
+  try{
+    const r=await(await fetch('/api/reset',{method:'POST'})).json();
+    if(r.error){alert('Gagal: '+r.error);return;}
+    window._synced=false;
+    if(r.state)render(r.state);
+    const b=await(await fetch('/api/bets')).json();renderBets(b);
+  }catch(e){alert('Reset error: '+e);}
+}
+async function poll(){
+  try{const s=await(await fetch('/api/stats')).json();render(s);
+  const b=await(await fetch('/api/bets')).json();renderBets(b);}catch(e){}
+}
+poll();setInterval(poll,1200);loadScripts();
+</script></body></html>
