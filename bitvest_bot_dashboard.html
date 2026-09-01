@@ -93,6 +93,13 @@ label{font-size:12px;color:var(--muted);display:block;margin-bottom:2px}.field{m
 <div class=field><label>Profit Lock %</label><input type=number id=c_lock step=0.01 value=0.30></div>
 <div class=field><label>Max SL → Seed Reset</label><input type=number id=c_maxsl value=3></div>
 <div class=field><label>Max Roll / Session</label><input type=number id=c_maxrolls value=500></div>
+<div class=field style="display:flex;align-items:center;gap:8px">
+  <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px">
+    <input type=checkbox id=c_safety checked style="width:auto;height:18px;accent-color:#38dc96">
+    <span>Safety Net</span>
+  </label>
+  <span class=sm>(bet cap + long session)</span>
+</div>
 </div>
 <div class=field><label>Target (TOK)</label><input type=number id=c_target value=1000000></div>
 <div style="margin-top:8px"><button class="btn go" style="width:100%" onclick="applyConfig()">Apply Config</button></div>
@@ -181,6 +188,7 @@ const pill=$('pill');
     if(c.profit_lock_pct!==undefined)$('c_lock').value=c.profit_lock_pct;
     if(c.max_consecutive_sl!==undefined)$('c_maxsl').value=c.max_consecutive_sl;
     if(c.max_session_rolls!==undefined)$('c_maxrolls').value=c.max_session_rolls;
+    if(c.safety_net!==undefined)$('c_safety').checked=c.safety_net;
     if(c.global_target!==undefined)$('c_target').value=c.global_target;
   }
 }
@@ -224,6 +232,7 @@ async function applyConfig(){
     profit_lock_pct:parseFloat($('c_lock').value),
     max_consecutive_sl:parseInt($('c_maxsl').value),
     max_session_rolls:parseInt($('c_maxrolls').value),
+    safety_net:$('c_safety').checked,
     global_target:parseFloat($('c_target').value),
     mode:currentMode,
     active_script:currentMode==='lua'?($('script-name').value.trim()):'',

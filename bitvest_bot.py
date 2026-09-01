@@ -33,6 +33,7 @@ STANDARD_DEFAULTS = {
     "profit_lock_pct": 0.30,
     "max_consecutive_sl": 3,
     "max_session_rolls": 500,
+    "safety_net": True,
     "bet_delay": 0.1,
     "global_target": 1_000_000.0,
 }
@@ -268,18 +269,19 @@ async def standard_after_bet(result, client):
     log.info("CHECK: win=%s gain=%.3f%% sl=%.1f%% tp=%.1f%% bal=%.2f stage=%.2f rolls=%d bet=%.4f",
              result["win"], gain*100, sl*100, tp*100, state["balance"], state["stage_start"], state.get("session_rolls",0), cbet)
 
-    if bet_doubled:
-        if gain > 0:
-            _reset_session(f"safety profit cut (bet {cbet:.2f} >= 2x base {sb:.2f})")
-            state["status"] = f"safety profit cut → {state['balance']:.2f}"
-            await broadcast({"type": "status", **public_state()})
-            return client
-        else:
-            tp = 0.
+    if cfg.get("safety_net", True):
+        if bet_doubled:
+            if gain > 0:
+                _reset_session(f"safety profit cut (bet {cbet:.2f} >= 2x base {sb:.2f})")
+                state["status"] = f"safety profit cut → {state['balance']:.2f}"
+                await broadcast({"type": "status", **public_state()})
+                return client
+            else:
+                tp = 0.
 
-    max_rolls = cfg.get("max_session_rolls", 500)
-    if state.get("session_rolls", 0) >= max_rolls:
-        tp = 0.
+        max_rolls = cfg.get("max_session_rolls", 500)
+        if state.get("session_rolls", 0) >= max_rolls:
+            tp = 0.
 
     if gain >= tp:
         _reset_session(f"TP {gain:.1%}")
